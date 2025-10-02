@@ -42,6 +42,8 @@ export class Game extends Scene {
   private pauseText: Phaser.GameObjects.Text | null = null;
   private moveDelay: number = 100;
   private lastMoveTime: number = 0;
+  private backgroundLines: Phaser.GameObjects.Graphics[] = [];
+  private backgroundTime: number = 0;
 
   constructor() {
     super('Game');
@@ -49,7 +51,10 @@ export class Game extends Scene {
 
   create() {
     this.camera = this.cameras.main;
-    this.camera.setBackgroundColor(0x1a1a2e);
+    this.camera.setBackgroundColor(0x0a0a1e);
+
+    // Create animated background
+    this.createAnimatedBackground();
 
     // Reset game state
     this.isGameOver = false;
@@ -95,77 +100,131 @@ export class Game extends Scene {
     EventBus.emit('current-scene-ready', this);
   }
 
+  private createAnimatedBackground(): void {
+    // Create moving neon lines (Geometry Dash style)
+    for (let i = 0; i < 15; i++) {
+      const line = this.add.graphics();
+      line.setDepth(-1);
+      this.backgroundLines.push(line);
+    }
+  }
+
+  private updateBackground(delta: number): void {
+    this.backgroundTime += delta;
+
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+
+    this.backgroundLines.forEach((line, index) => {
+      line.clear();
+
+      const speed = 0.05 + index * 0.01;
+      const offset = ((this.backgroundTime * speed) % (height + 100)) - 50;
+      const angle = Math.sin(this.backgroundTime * 0.0005 + index) * 20;
+
+      const colors = [0x00ffff, 0xff00ff, 0x00ff00, 0xffff00, 0xff0000];
+      const color = colors[index % colors.length];
+
+      line.lineStyle(2, color, 0.15);
+      line.beginPath();
+      line.moveTo(0, offset + angle);
+      line.lineTo(width, offset - angle);
+      line.strokePath();
+    });
+  }
+
   private createUI(): void {
     const uiX = 400;
 
-    // High score display
+    // High score display with neon glow
     this.highScoreText = this.add
       .text(uiX, 60, `HIGH SCORE: ${this.highScore}`, {
         fontFamily: 'Arial',
         fontSize: '18px',
         color: '#ffaa00',
+        stroke: '#ffaa00',
+        strokeThickness: 1,
+        shadow: { offsetX: 0, offsetY: 0, color: '#ffaa00', blur: 10, fill: true },
       })
       .setOrigin(0, 0);
 
-    // Score display
+    // Score display with neon glow
     this.scoreText = this.add
       .text(uiX, 90, `SCORE: ${this.score}`, {
         fontFamily: 'Arial',
         fontSize: '24px',
         color: '#ffffff',
+        stroke: '#00ffff',
+        strokeThickness: 2,
+        shadow: { offsetX: 0, offsetY: 0, color: '#00ffff', blur: 15, fill: true },
       })
       .setOrigin(0, 0);
 
-    // Level display
+    // Level display with neon glow
     this.levelText = this.add
       .text(uiX, 130, `LEVEL: ${this.level}`, {
         fontFamily: 'Arial',
         fontSize: '20px',
         color: '#00ffff',
+        stroke: '#00ffff',
+        strokeThickness: 1,
+        shadow: { offsetX: 0, offsetY: 0, color: '#00ffff', blur: 12, fill: true },
       })
       .setOrigin(0, 0);
 
-    // Lines display
+    // Lines display with neon glow
     this.linesText = this.add
       .text(uiX, 160, `LINES: ${this.lines}`, {
         fontFamily: 'Arial',
         fontSize: '20px',
         color: '#00ff00',
+        stroke: '#00ff00',
+        strokeThickness: 1,
+        shadow: { offsetX: 0, offsetY: 0, color: '#00ff00', blur: 12, fill: true },
       })
       .setOrigin(0, 0);
 
-    // Combo display
+    // Combo display with neon glow
     this.comboText = this.add
       .text(uiX, 190, '', {
         fontFamily: 'Arial',
         fontSize: '18px',
         color: '#ff00ff',
+        stroke: '#ff00ff',
+        strokeThickness: 1,
+        shadow: { offsetX: 0, offsetY: 0, color: '#ff00ff', blur: 15, fill: true },
       })
       .setOrigin(0, 0);
 
-    // Next piece
+    // Next piece with neon glow
     this.add
       .text(uiX, 240, 'NEXT:', {
         fontFamily: 'Arial',
         fontSize: '20px',
-        color: '#ffffff',
+        color: '#ffff00',
+        stroke: '#ffff00',
+        strokeThickness: 1,
+        shadow: { offsetX: 0, offsetY: 0, color: '#ffff00', blur: 12, fill: true },
       })
       .setOrigin(0, 0);
 
     this.nextPieceGraphics = this.add.graphics();
 
-    // Hold piece
+    // Hold piece with neon glow
     this.add
       .text(uiX, 360, 'HOLD (C/Shift):', {
         fontFamily: 'Arial',
         fontSize: '20px',
-        color: '#ffffff',
+        color: '#ff6600',
+        stroke: '#ff6600',
+        strokeThickness: 1,
+        shadow: { offsetX: 0, offsetY: 0, color: '#ff6600', blur: 12, fill: true },
       })
       .setOrigin(0, 0);
 
     this.holdPieceGraphics = this.add.graphics();
 
-    // Controls info
+    // Controls info with subtle glow
     this.add
       .text(
         uiX,
@@ -174,7 +233,8 @@ export class Game extends Scene {
         {
           fontFamily: 'Arial',
           fontSize: '14px',
-          color: '#aaaaaa',
+          color: '#888888',
+          shadow: { offsetX: 0, offsetY: 0, color: '#444444', blur: 5, fill: true },
           lineSpacing: 4,
         },
       )
@@ -256,19 +316,33 @@ export class Game extends Scene {
 
     const gameOverText = isNewHighScore ? 'NEW HIGH SCORE!\n\nGAME OVER' : 'GAME OVER';
 
+    // Neon panel with glow
     const panel = this.add.graphics();
-    panel.fillStyle(0x000000, 0.8);
+    panel.fillStyle(0x000000, 0.9);
     panel.fillRect(this.cameras.main.centerX - 200, this.cameras.main.centerY - 220, 400, 360);
+    panel.lineStyle(3, isNewHighScore ? 0xffaa00 : 0xff0000, 1);
+    panel.strokeRect(this.cameras.main.centerX - 200, this.cameras.main.centerY - 220, 400, 360);
 
+    // Game over text with neon glow
     this.add
       .text(this.cameras.main.centerX, this.cameras.main.centerY - 120, gameOverText, {
         fontFamily: 'Arial',
         fontSize: isNewHighScore ? '36px' : '48px',
         color: isNewHighScore ? '#ffaa00' : '#ff0000',
+        stroke: isNewHighScore ? '#ffaa00' : '#ff0000',
+        strokeThickness: 2,
+        shadow: {
+          offsetX: 0,
+          offsetY: 0,
+          color: isNewHighScore ? '#ffaa00' : '#ff0000',
+          blur: 20,
+          fill: true,
+        },
         align: 'center',
       })
       .setOrigin(0.5);
 
+    // Stats with neon glow
     this.add
       .text(
         this.cameras.main.centerX,
@@ -277,18 +351,23 @@ export class Game extends Scene {
         {
           fontFamily: 'Arial',
           fontSize: '24px',
-          color: '#ffffff',
+          color: '#00ffff',
+          stroke: '#00ffff',
+          strokeThickness: 1,
+          shadow: { offsetX: 0, offsetY: 0, color: '#00ffff', blur: 12, fill: true },
           align: 'center',
           lineSpacing: 8,
         },
       )
       .setOrigin(0.5);
 
+    // Restart prompt with glow
     this.add
       .text(this.cameras.main.centerX, this.cameras.main.centerY + 100, 'Press R to Restart', {
         fontFamily: 'Arial',
         fontSize: '20px',
-        color: '#aaaaaa',
+        color: '#ffffff',
+        shadow: { offsetX: 0, offsetY: 0, color: '#ffffff', blur: 8, fill: true },
         align: 'center',
       })
       .setOrigin(0.5);
@@ -450,20 +529,25 @@ export class Game extends Scene {
   }
 
   private createLineClearEffect(): void {
-    // Create particle effect for line clear
+    // Create neon particle effect for line clear
     const centerX = this.board.getOffsetX() + (this.board.getCols() * this.board.getCellSize()) / 2;
     const centerY = this.cameras.main.centerY;
 
     const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff];
 
-    for (let i = 0; i < 20; i++) {
-      const angle = (Math.PI * 2 * i) / 20;
-      const speed = 100 + Math.random() * 100;
+    // Explosive neon particles
+    for (let i = 0; i < 30; i++) {
+      const angle = (Math.PI * 2 * i) / 30;
+      const speed = 150 + Math.random() * 150;
 
       const graphics = this.add.graphics();
       const color = colors[Math.floor(Math.random() * colors.length)];
+
+      // Neon glow particle
       graphics.fillStyle(color, 1);
-      graphics.fillCircle(0, 0, 4);
+      graphics.fillCircle(0, 0, 6);
+      graphics.lineStyle(2, color, 0.8);
+      graphics.strokeCircle(0, 0, 10);
 
       graphics.setPosition(centerX, centerY);
 
@@ -472,28 +556,50 @@ export class Game extends Scene {
         x: centerX + Math.cos(angle) * speed,
         y: centerY + Math.sin(angle) * speed,
         alpha: 0,
-        duration: 500,
-        ease: 'Power2',
+        scaleX: 0.2,
+        scaleY: 0.2,
+        duration: 700,
+        ease: 'Power3',
         onComplete: () => graphics.destroy(),
       });
     }
 
-    // Show combo text
+    // Shockwave effect
+    const shockwave = this.add.graphics();
+    shockwave.lineStyle(3, 0xffffff, 1);
+    shockwave.strokeCircle(centerX, centerY, 10);
+
+    this.tweens.add({
+      targets: shockwave,
+      scaleX: 8,
+      scaleY: 8,
+      alpha: 0,
+      duration: 500,
+      ease: 'Power2',
+      onComplete: () => shockwave.destroy(),
+    });
+
+    // Show neon combo text
     if (this.combo > 1) {
       const comboTextObj = this.add
         .text(centerX, centerY - 50, `COMBO x${this.combo}!`, {
           fontFamily: 'Arial',
-          fontSize: '32px',
+          fontSize: '40px',
           color: '#ff00ff',
+          stroke: '#ff00ff',
+          strokeThickness: 3,
+          shadow: { offsetX: 0, offsetY: 0, color: '#ff00ff', blur: 20, fill: true },
         })
         .setOrigin(0.5);
 
       this.tweens.add({
         targets: comboTextObj,
-        y: centerY - 100,
+        y: centerY - 120,
+        scaleX: 1.5,
+        scaleY: 1.5,
         alpha: 0,
-        duration: 1000,
-        ease: 'Power2',
+        duration: 1200,
+        ease: 'Back.easeOut',
         onComplete: () => comboTextObj.destroy(),
       });
     }
@@ -621,6 +727,9 @@ export class Game extends Scene {
   }
 
   update(time: number, delta: number): void {
+    // Update background animation
+    this.updateBackground(delta);
+
     if (this.isGameOver) return;
 
     // Pause toggle

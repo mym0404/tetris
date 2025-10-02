@@ -80,6 +80,7 @@ export class Tetromino {
     const cellSize = board.getCellSize();
     const offsetX = board.getOffsetX();
     const offsetY = board.getOffsetY();
+    const size = cellSize - 2;
 
     for (let row = 0; row < this.shape.length; row++) {
       for (let col = 0; col < this.shape[row].length; col++) {
@@ -89,13 +90,35 @@ export class Tetromino {
 
           // Only draw if within visible area
           if (y + row >= 0) {
+            // Base color
             this.graphics.fillStyle(this.color, alpha);
-            this.graphics.fillRect(drawX + 1, drawY + 1, cellSize - 2, cellSize - 2);
+            this.graphics.fillRect(drawX + 1, drawY + 1, size, size);
 
             if (alpha === 1.0) {
-              // Add border for depth effect
-              this.graphics.lineStyle(2, 0xffffff, 0.3);
-              this.graphics.strokeRect(drawX + 1, drawY + 1, cellSize - 2, cellSize - 2);
+              // Gradient overlay for 3D effect
+              this.graphics.fillGradientStyle(
+                0xffffff,
+                0xffffff,
+                this.color,
+                this.color,
+                0.5,
+                0.1,
+                0.4,
+                0.1,
+              );
+              this.graphics.fillRect(drawX + 1, drawY + 1, size, size);
+
+              // Neon glow outer border
+              this.graphics.lineStyle(3, this.color, 0.9);
+              this.graphics.strokeRect(drawX + 1, drawY + 1, size, size);
+
+              // Shimmer inner border
+              this.graphics.lineStyle(1.5, 0xffffff, 0.7);
+              this.graphics.strokeRect(drawX + 3, drawY + 3, size - 4, size - 4);
+            } else {
+              // Ghost piece - just faint glow
+              this.graphics.lineStyle(2, this.color, alpha * 0.5);
+              this.graphics.strokeRect(drawX + 1, drawY + 1, size, size);
             }
           }
         }

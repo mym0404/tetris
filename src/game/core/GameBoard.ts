@@ -142,13 +142,32 @@ export class GameBoard {
   drawCell(col: number, row: number, color: number, alpha: number = 1): void {
     const x = this.offsetX + col * this.CELL_SIZE;
     const y = this.offsetY + row * this.CELL_SIZE;
+    const size = this.CELL_SIZE - 2;
 
+    // Main color
     this.graphics.fillStyle(color, alpha);
-    this.graphics.fillRect(x + 1, y + 1, this.CELL_SIZE - 2, this.CELL_SIZE - 2);
+    this.graphics.fillRect(x + 1, y + 1, size, size);
 
-    // Add border for depth effect
-    this.graphics.lineStyle(2, 0xffffff, alpha * 0.3);
-    this.graphics.strokeRect(x + 1, y + 1, this.CELL_SIZE - 2, this.CELL_SIZE - 2);
+    // Gradient overlay using fillGradientStyle
+    this.graphics.fillGradientStyle(
+      0xffffff,
+      0xffffff,
+      color,
+      color,
+      alpha * 0.4,
+      alpha * 0.1,
+      alpha * 0.3,
+      alpha * 0.1,
+    );
+    this.graphics.fillRect(x + 1, y + 1, size, size);
+
+    // Neon glow border
+    this.graphics.lineStyle(3, color, alpha * 0.8);
+    this.graphics.strokeRect(x + 1, y + 1, size, size);
+
+    // Inner bright border
+    this.graphics.lineStyle(1, 0xffffff, alpha * 0.6);
+    this.graphics.strokeRect(x + 3, y + 3, size - 4, size - 4);
   }
 
   getCellSize(): number {
