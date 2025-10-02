@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm lint:fix:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
