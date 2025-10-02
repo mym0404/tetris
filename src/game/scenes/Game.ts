@@ -258,10 +258,10 @@ export class Game extends Scene {
 
     const panel = this.add.graphics();
     panel.fillStyle(0x000000, 0.8);
-    panel.fillRect(this.cameras.main.centerX - 200, this.cameras.main.centerY - 150, 400, 300);
+    panel.fillRect(this.cameras.main.centerX - 200, this.cameras.main.centerY - 220, 400, 360);
 
     this.add
-      .text(this.cameras.main.centerX, this.cameras.main.centerY - 80, gameOverText, {
+      .text(this.cameras.main.centerX, this.cameras.main.centerY - 120, gameOverText, {
         fontFamily: 'Arial',
         fontSize: isNewHighScore ? '36px' : '48px',
         color: isNewHighScore ? '#ffaa00' : '#ff0000',
